@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "expo-starter-template",
+    "name": "My Expo Template",
     "slug": "expo-starter-template",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -25,6 +25,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "@react-native-google-signin/google-signin"
+    ]
   }
 }
