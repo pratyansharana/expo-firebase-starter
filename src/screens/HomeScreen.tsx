@@ -4,17 +4,19 @@ import {
     View, 
     TouchableOpacity, 
     StyleSheet, 
-    SafeAreaView,
-    ScrollView,
-    Animated,
-    Dimensions
+    ScrollView, 
+    Animated, 
+    Dimensions 
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebaseconfig';
+import type { MainTabScreenProps } from '../navigation/types';
 
 const { width } = Dimensions.get('window');
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation }: MainTabScreenProps<'HomeTab'>) {
+    const insets = useSafeAreaInsets();
     // Setup Entrance Animations
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
@@ -38,7 +40,7 @@ export default function HomeScreen({ navigation }) {
     const handleLogout = async () => {
         try {
             await signOut(auth);
-            navigation.replace('Login');
+            // AuthContext onAuthStateChanged automatically transitions back to Login
         } catch (error) {
             console.error('Logout Error:', error);
             alert('Failed to log out.');
@@ -55,7 +57,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.bgCircleTop} />
             <View style={styles.bgCircleBottom} />
 
-            <SafeAreaView style={styles.safeArea}>
+            <View style={[styles.safeArea, { paddingTop: Math.max(insets.top, 16) }]}>
                 <ScrollView 
                     contentContainerStyle={styles.scrollContainer}
                     showsVerticalScrollIndicator={false}
@@ -64,10 +66,13 @@ export default function HomeScreen({ navigation }) {
                     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
                         <View style={styles.header}>
                             <View>
-                                <Text style={styles.greeting}>Hello,</Text>
+                                <Text style={styles.greeting}>Welcome Back,</Text>
                                 <Text style={styles.name}>{displayName}</Text>
                             </View>
-                            <TouchableOpacity style={styles.profileBadge}>
+                            <TouchableOpacity 
+                                style={styles.profileBadge}
+                                onPress={() => navigation.navigate('ProfileTab')}
+                            >
                                 <Text style={styles.profileBadgeText}>
                                     {displayName.charAt(0).toUpperCase()}
                                 </Text>
@@ -134,7 +139,7 @@ export default function HomeScreen({ navigation }) {
                     </Animated.View>
 
                 </ScrollView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 }

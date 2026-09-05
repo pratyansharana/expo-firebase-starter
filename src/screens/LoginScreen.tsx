@@ -10,12 +10,17 @@ import {
     Platform,
     TouchableWithoutFeedback,
     Keyboard,
-    SafeAreaView
+    ScrollView
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebaseconfig';
+import { useAuth } from '../context/AuthContext';
+import type { RootStackScreenProps } from '../navigation/types';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'>) {
+    const insets = useSafeAreaInsets();
+    const { bypassAuth } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -33,10 +38,10 @@ export default function LoginScreen({ navigation }) {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log('User logged in:', userCredential.user.email);
-            navigation.replace('MainTabs'); 
-        } catch (error) {
+            // AuthContext onAuthStateChanged automatically transitions to MainTabs
+        } catch (error: any) {
             console.error('Login error:', error);
-            alert('Login failed. Please check your credentials and try again.');
+            alert(error.message || 'Login failed. Please check your credentials and try again.');
         } finally {
             setLoading(false); 
         }
@@ -49,17 +54,22 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.circleOne} />
             <View style={styles.circleTwo} />
 
-            <SafeAreaView style={styles.safeArea}>
+            <View style={[styles.safeArea, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <KeyboardAvoidingView 
                         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={styles.container}
+                        style={styles.keyboardContainer}
                     >
-                        {/* Header Section */}
-                        <View style={styles.headerContainer}>
-                            <Text style={styles.title}>Welcome Back !</Text>
-                            <Text style={styles.subtitle}>Sign in to continue your journey</Text>
-                        </View>
+                        <ScrollView 
+                            contentContainerStyle={styles.scrollContainer}
+                            showsVerticalScrollIndicator={false}
+                            bounces={false}
+                        >
+                            {/* Header Section */}
+                            <View style={styles.headerContainer}>
+                                <Text style={styles.title}>Welcome Back !</Text>
+                                <Text style={styles.subtitle}>Sign in to continue your journey</Text>
+                            </View>
 
                         {/* Input Section */}
                         <View style={styles.formContainer}>
@@ -133,6 +143,15 @@ export default function LoginScreen({ navigation }) {
                             >
                                 <Text style={styles.secondaryButtonText}>Continue with Google</Text>
                             </TouchableOpacity>
+
+                            {/* Dev Quick Bypass Button */}
+                            <TouchableOpacity 
+                                style={styles.bypassButton} 
+                                onPress={bypassAuth}
+                                disabled={loading}
+                            >
+                                <Text style={styles.bypassButtonText}>⚡ Dev Bypass (Enter App Directly)</Text>
+                            </TouchableOpacity>
                         </View>
 
                         {/* Footer */}
@@ -142,10 +161,10 @@ export default function LoginScreen({ navigation }) {
                                 <Text style={styles.footerLink}>Sign Up</Text>
                             </TouchableOpacity>
                         </View>
-
+                        </ScrollView>
                     </KeyboardAvoidingView>
                 </TouchableWithoutFeedback>
-            </SafeAreaView>
+            </View>
         </View>
     )
 }
@@ -154,7 +173,7 @@ const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
         backgroundColor: '#F9FAFB',
-        overflow: 'hidden', // Keeps the background shapes from breaking the layout
+        overflow: 'hidden',
     },
     // --- Decorative Background Shapes ---
     topSemicircle: {
@@ -164,7 +183,7 @@ const styles = StyleSheet.create({
         right: -100,
         height: 600,
         borderRadius: 300, 
-        backgroundColor: '#4F46E5', // Primary Indigo Color
+        backgroundColor: '#4F46E5',
         opacity: 0.1,
     },
     circleOne: {
@@ -191,15 +210,18 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
     },
-    container: {
+    keyboardContainer: {
         flex: 1,
+    },
+    scrollContainer: {
+        flexGrow: 1,
         paddingHorizontal: 24,
+        paddingTop: 24,
+        paddingBottom: 32,
         justifyContent: 'center',
-        marginTop: 100, 
     },
     headerContainer: {
-        marginBottom: 40,
-        marginTop: 50,
+        marginBottom: 32,
     },
     title: {
         fontSize: 34,
@@ -328,6 +350,21 @@ const styles = StyleSheet.create({
         color: '#374151',
         fontSize: 16,
         fontWeight: '600',
+    },
+    bypassButton: {
+        marginTop: 12,
+        backgroundColor: '#ECFDF5',
+        borderWidth: 1,
+        borderColor: '#10B981',
+        height: 48,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    bypassButtonText: {
+        color: '#047857',
+        fontSize: 14,
+        fontWeight: '700',
     },
     footerContainer: {
         flexDirection: 'row',

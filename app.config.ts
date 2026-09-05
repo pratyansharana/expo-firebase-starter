@@ -11,6 +11,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   // Notice the parentheses ( ) directly after return
   return {
     ...config,
+    name: config.name || 'My Expo Template',
+    slug: config.slug || 'expo-starter-template',
     ios: {
       ...config.ios,
       bundleIdentifier: `${companyPrefix}.${cleanSlug}`,

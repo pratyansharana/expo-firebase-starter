@@ -1,27 +1,37 @@
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
-import { BottomTabs } from 'react-native-screens';
 import MainTabs from './MainTabs';
+import { SplashScreen } from '../screens/SplashScreen';
+import { useAuth } from '../context/AuthContext';
+import type { RootStackParamList } from './types';
 
-const stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function AppNavigator(){
+export default function AppNavigator() {
+  const { user, isLoading } = useAuth();
 
-    return (
-        <stack.Navigator>
-            <stack.Screen name="Login" component={LoginScreen} options={{headerShown:false}}  />
-            <stack.Screen name="Signup" component={SignupScreen} options={{headerShown:false}}/>
-            
-            <stack.Screen 
-                name="MainTabs" 
-                component={MainTabs} 
-                // Disable header and gestures so they can't swipe back to Login
-                options={{ headerShown: false, gestureEnabled: false }} 
-            />
-        </stack.Navigator>
-        
-    )
+  if (isLoading) {
+    return <SplashScreen statusMessage="Verifying authentication & session..." />;
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        // Authenticated Protected Stack
+        <Stack.Screen 
+          name="MainTabs" 
+          component={MainTabs} 
+          options={{ gestureEnabled: false }} 
+        />
+      ) : (
+        // Unauthenticated Public Auth Stack
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+        </>
+      )}
+    </Stack.Navigator>
+  );
 }
